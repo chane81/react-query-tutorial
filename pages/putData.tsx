@@ -12,31 +12,31 @@ import { IReqPutPosts, IResPutPosts } from '~/types/IPutPosts';
 import axios from 'axios';
 import { IPerson } from '~/src/types/IPerson';
 
-export const fetcher = async (params: IReqPutPosts): Promise<IResPutPosts> => {
-  const { id, userId, title, body } = params;
+const fetcher = async <Req, Res>(params: IMutateParams<Req>): Promise<Res> => {
+  const { url, body } = params;
 
   try {
-    const res = await axios.put(
-      `https://jsonplaceholder.typicode.com/posts/1`,
-      {
-        id,
-        userId,
-        title,
-        body
-      }
-    );
+    const res = await axios.put(url, body);
 
     return res.data;
   } catch {
-    throw new Error('Network response not ok'); // need to throw because react-query functions need to have error thrown to know its in error state
+    throw new Error('Network response not ok');
   }
 };
+
+interface IMutateParams<T> {
+  url: string;
+  body: T;
+}
+
+const PUT_URL = (id: number) =>
+  `https://jsonplaceholder.typicode.com/posts/${id}`;
 
 const PutData: FC = () => {
   const { mutate, data, isLoading, isError, error } = useMutation<
     IResPutPosts,
     Error,
-    IReqPutPosts
+    IMutateParams<IReqPutPosts>
   >('putPosts', async (params) => fetcher(params));
 
   const queryCache = new QueryClient();
@@ -50,18 +50,21 @@ const PutData: FC = () => {
       </div>
     );
   }
+
   if (isError) return <p>Boom boy: Error is -- {error?.message}</p>;
 
   const handleExec = () => {
     mutate({
-      id: 1,
-      body: '테스트',
-      title: '111',
-      userId: 22
+      url: PUT_URL(3),
+      body: {
+        id: 1,
+        title: 'foo1',
+        body: 'bar',
+        userId: 1
+      }
     });
 
     const queryData = queryCache.getQueryData<IPerson>('person');
-    console.log('qq', queryData);
   };
 
   return (

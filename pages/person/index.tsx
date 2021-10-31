@@ -10,7 +10,7 @@ export const fetchPerson = async (): Promise<IPerson> => {
   if (res.ok) {
     return res.json();
   }
-  throw new Error('Network response not ok'); // need to throw because react-query functions need to have error thrown to know its in error state
+  throw new Error('Network response not ok');
 };
 
 const PersonPage: FC = () => {
@@ -20,16 +20,11 @@ const PersonPage: FC = () => {
     isError,
     error,
     data,
-    refetch
+    refetch,
+    status
   }: UseQueryResult<IPerson, Error> = useQuery<IPerson, Error>(
     'person',
-    fetchPerson,
-    {
-      enabled: false
-    }
-    // {
-    //   staleTime: 5 * 1000, // 5 seconds
-    // }
+    fetchPerson
   );
 
   if (isLoading) {
@@ -46,11 +41,12 @@ const PersonPage: FC = () => {
   };
 
   const handleCacheUpdate = () => {
-    queryClient.setQueryData<IPerson>('person', {
-      age: 21,
-      id: '2',
-      name: '캐시 변경'
-    });
+    queryClient.invalidateQueries('person');
+    // queryClient.setQueryData<IPerson>('person', {
+    //   age: 21,
+    //   id: '2',
+    //   name: '캐시 변경'
+    // });
   };
 
   return (
