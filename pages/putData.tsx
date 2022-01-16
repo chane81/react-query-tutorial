@@ -10,7 +10,7 @@ import {
 import PersonInfo from '~/components/PersonInfo';
 import { IReqPutPosts, IResPutPosts } from '~/types/IPutPosts';
 import axios from 'axios';
-import { IPerson } from '~/src/types/IPerson';
+import { IResGetPerson } from '~/src/types/IGetPerson';
 
 const fetcher = async <Req, Res>(params: IMutateParams<Req>): Promise<Res> => {
   const { url, body } = params;
@@ -37,11 +37,11 @@ const PutData: FC = () => {
     IResPutPosts,
     Error,
     IMutateParams<IReqPutPosts>
-  >('putPosts', async (params) => fetcher(params));
+  >(async (params) => fetcher(params));
 
   const queryCache = new QueryClient();
 
-  const queryData = queryCache.getQueryData<IPerson>('person');
+  const queryData = queryCache.getQueryData<IResGetPerson>('person');
 
   if (isLoading) {
     return (
@@ -64,7 +64,7 @@ const PutData: FC = () => {
       }
     });
 
-    const queryData = queryCache.getQueryData<IPerson>('person');
+    const queryData = queryCache.getQueryData<IResGetPerson>('person');
   };
 
   return (

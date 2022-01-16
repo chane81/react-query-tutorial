@@ -1,15 +1,14 @@
 import { useQuery, UseQueryResult } from 'react-query';
-import { fetchPerson } from '~/pages/person';
-import { IPerson } from '~/types/IPerson';
+import { IResGetPerson } from '~/src/types/IGetPerson';
+import { fetchPerson } from '../api/getPerson';
 
 const PersonInfo = () => {
-  const { data }: UseQueryResult<IPerson, Error> = useQuery<IPerson, Error>(
-    'person',
-    fetchPerson,
-    {
-      enabled: false
-    }
-  );
+  const { data }: UseQueryResult<IResGetPerson, Error> = useQuery<
+    IResGetPerson,
+    Error
+  >('person', fetchPerson, {
+    enabled: false
+  });
 
   return (
     <>

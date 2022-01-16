@@ -2,16 +2,8 @@ import { FC } from 'react';
 import Link from 'next/link';
 import { useQuery, UseQueryResult, useQueryClient } from 'react-query';
 import PersonInfo from '~/components/PersonInfo';
-import { IPerson } from '~/types/IPerson';
-
-export const fetchPerson = async (): Promise<IPerson> => {
-  const res = await fetch(`/api/person`);
-
-  if (res.ok) {
-    return res.json();
-  }
-  throw new Error('Network response not ok');
-};
+import { IResGetPerson } from '~/src/types/IGetPerson';
+import { fetchPerson } from '~/src/api/getPerson';
 
 const PersonPage: FC = () => {
   const queryClient = useQueryClient();
@@ -21,10 +13,15 @@ const PersonPage: FC = () => {
     error,
     data,
     refetch,
-    status
-  }: UseQueryResult<IPerson, Error> = useQuery<IPerson, Error>(
+    status,
+    isFetching,
+    isRefetching
+  }: UseQueryResult<IResGetPerson, Error> = useQuery<IResGetPerson, Error>(
     'person',
-    fetchPerson
+    fetchPerson,
+    {
+      staleTime: 5000
+    }
   );
 
   if (isLoading) {
@@ -37,12 +34,15 @@ const PersonPage: FC = () => {
   if (isError) return <p>Boom boy: Error is -- {error?.message}</p>;
 
   const handleRefetch = () => {
-    refetch();
+    //refetch();
+    queryClient.fetchInfiniteQuery('person');
   };
+
+  console.log('islo', isLoading, isFetching, isRefetching);
 
   const handleCacheUpdate = () => {
     queryClient.invalidateQueries('person');
-    // queryClient.setQueryData<IPerson>('person', {
+    // queryClient.setQueryData<IResGetPerson>('person', {
     //   age: 21,
     //   id: '2',
     //   name: '캐시 변경'

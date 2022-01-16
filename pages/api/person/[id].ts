@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { IPerson } from '~/types/IPerson';
+import { IResGetPerson } from '~/src/types/IGetPerson';
 
 const handler = (
   req: NextApiRequest,
-  res: NextApiResponse<IPerson | Error>
+  res: NextApiResponse<IResGetPerson | Error>
 ): void => {
   const {
     query: { id }
