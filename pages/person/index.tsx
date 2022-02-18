@@ -1,12 +1,18 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, UseQueryResult, useQueryClient } from 'react-query';
 import PersonInfo from '~/components/PersonInfo';
 import { IResGetPerson } from '~/src/types/IGetPerson';
-import { fetchPerson } from '~/src/api/getPerson';
+//import { fetchPerson } from '~/src/api/getPerson';
+import { fetchPosts } from '~/src/api/getPosts';
+import { IResGetPosts } from '~/src/types/IGetPosts';
+import { useRouter } from 'next/router';
 
 const PersonPage: FC = () => {
+  const [num, setNum] = useState<number>(1);
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const queryKey = ['person', { id: num }];
   const {
     isLoading,
     isError,
@@ -15,14 +21,17 @@ const PersonPage: FC = () => {
     refetch,
     status,
     isFetching,
-    isRefetching
-  }: UseQueryResult<IResGetPerson, Error> = useQuery<IResGetPerson, Error>(
-    'person',
-    fetchPerson,
+    isRefetching,
+    isPreviousData
+  }: UseQueryResult<IResGetPosts, Error> = useQuery<IResGetPosts, Error>(
+    queryKey,
+    async () => fetchPosts(num),
     {
       staleTime: 5000
     }
   );
+
+  console.log('index page', isLoading, isFetching, isPreviousData);
 
   if (isLoading) {
     return (
@@ -34,19 +43,32 @@ const PersonPage: FC = () => {
   if (isError) return <p>Boom boy: Error is -- {error?.message}</p>;
 
   const handleRefetch = () => {
-    //refetch();
-    queryClient.fetchInfiniteQuery('person');
+    refetch();
   };
 
-  console.log('islo', isLoading, isFetching, isRefetching);
-
   const handleCacheUpdate = () => {
-    queryClient.invalidateQueries('person');
-    // queryClient.setQueryData<IResGetPerson>('person', {
-    //   age: 21,
-    //   id: '2',
-    //   name: '캐시 변경'
-    // });
+    const cacheData = queryClient.getQueryData<IResGetPosts>(queryKey);
+
+    console.log('cache data', cacheData);
+
+    if (cacheData) {
+      queryClient.setQueryData<IResGetPosts>(queryKey, {
+        ...cacheData,
+        title: '캐시변경'
+      });
+    }
+  };
+
+  const handleIncrease = () => {
+    setNum((prev) => prev + 1);
+  };
+
+  const handleSameKeyCall = () => {
+    queryClient.fetchInfiniteQuery(['person', { id: num }]);
+  };
+
+  const handleRoute = () => {
+    router.push('/putData');
   };
 
   return (
@@ -54,18 +76,37 @@ const PersonPage: FC = () => {
       <Link href='/'>
         <a>Home</a>
       </Link>
+      <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem 0' }}>
+        <div>
+          <button onClick={handleSameKeyCall}>같은키에 대한 api 호출</button>
+        </div>
+        <div>
+          <button onClick={handleRefetch}>리패치</button>
+        </div>
+        <div>
+          <button onClick={handleCacheUpdate}>캐시 업데이트</button>
+        </div>
+        <div>
+          <button onClick={handleIncrease}>increase({num})</button>
+        </div>
+        <div>
+          <button onClick={handleRoute}>putData page로 라우트</button>
+        </div>
+      </div>
+
       <div>
-        <button onClick={handleRefetch}>refetch</button>
+        <h3>Title:</h3>
+        {data?.title}
       </div>
       <div>
-        <button onClick={handleCacheUpdate}>cache update</button>
+        <h3>Body:</h3> {data?.body}
       </div>
-      <p>{data?.id}</p>
-      <p>{data?.name}</p>
-      <p>{data?.age}</p>
+      <div>
+        <h3>UserId:</h3> {data?.userId}
+      </div>
       <br />
       <h1>Person Component</h1>
-      <PersonInfo />
+      <PersonInfo num={num} />
     </>
   );
 };
